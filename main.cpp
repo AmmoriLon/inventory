@@ -1,23 +1,26 @@
-#include <QGuiApplication>
+// main.cpp
+#include <QApplication>
 #include <QQmlApplicationEngine>
-#include <QIcon>
-#include "inventorymanager.h"
+#include <QQmlContext>
+#include "ItemModel.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) // точка входа
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv); // запускаем приложение
 
-    // Регистрируем типы
-    qmlRegisterType<Item>("Inventory", 1, 0, "Item");
-
-    // Регистрируем InventoryManager как синглтон
-    qmlRegisterSingletonInstance("Inventory", 1, 0, "InventoryManager", &InventoryManager::instance());
+    qmlRegisterType<ItemModel>("Inventory", 1, 0, "ItemModel");
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-    if (engine.rootObjects().isEmpty())
-        return -1;
+    // Создаём модель
+    ItemModel model;
+    model.loadFromFile("inventory.json");
+
+    engine.rootContext()->setContextProperty("inventoryModel", &model);
+    engine.rootContext()->setContextProperty("categoriesList", model.property("categories"));
+
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    engine.load(url);
 
     return app.exec();
 }
